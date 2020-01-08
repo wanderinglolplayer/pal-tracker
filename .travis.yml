@@ -6,7 +6,6 @@ env:
   - RELEASE_TAG="release-$TRAVIS_BUILD_NUMBER"
 if: tag IS blank
 
-
 jobs:
   include:
     - stage: build and publish
@@ -24,6 +23,7 @@ jobs:
         file: "build/libs/pal-tracker.jar"
         skip_cleanup: true
     - stage: deploy to cf
+      if: branch IS master
       language: bash
       script:
         - echo "Downloading $RELEASE_TAG"
@@ -37,3 +37,21 @@ jobs:
         password: $CF_PASSWORD
         organization: $CF_ORG
         space: $CF_SPACE
+    - stage: deploy to cf production
+      if: branch IS production
+      env:
+        - CF_SPACE_PROD = production
+      language: bash
+      script:
+        - echo "Downloading $RELEASE_TAG"
+        - wget -P build/libs https://github.com/$GITHUB_USERNAME/pal-tracker/releases/download/$RELEASE_TAG/pal-tracker.jar
+      before_deploy:
+        - echo "Deploying $RELEASE_TAG to Cloud Foundry"
+        - echo "CF_SPACE_PROD is $CF_SPACE_PROD"
+      deploy:
+        provider: cloudfoundry
+        api: $CF_API_URL
+        username: $CF_USERNAME
+        password: $CF_PASSWORD
+        organization: $CF_ORG
+        space: $CF_SPACE_PROD
