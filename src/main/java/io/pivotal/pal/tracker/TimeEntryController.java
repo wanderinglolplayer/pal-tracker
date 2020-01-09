@@ -15,21 +15,20 @@ public class TimeEntryController {
     TimeEntryRepository timeEntryRepository;
 
     private final DistributionSummary distributionSummary;
-    private final Counter counter;
+
 
 
 
     public TimeEntryController(TimeEntryRepository timeEntryRepository, MeterRegistry meterRegistry) {
         this.timeEntryRepository = timeEntryRepository;
         this.distributionSummary = meterRegistry.summary("timeEntry.summary");
-        this.counter =meterRegistry.counter("timeEntry.counter");
+
     }
 
     @PostMapping
     public ResponseEntity create(@RequestBody TimeEntry timeEntryToCreate) {
         HttpStatus status = HttpStatus.CREATED;
         distributionSummary.record(timeEntryRepository.list().size());
-        counter.increment();
         TimeEntry body = timeEntryRepository.create(timeEntryToCreate);
         ResponseEntity responseEntity = new ResponseEntity(body, status);
         return responseEntity;
@@ -42,7 +41,6 @@ public class TimeEntryController {
         if (body == null) {
             return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
         }
-        counter.increment();
         HttpStatus status = HttpStatus.OK;
         ResponseEntity responseEntity = new ResponseEntity(body, status);
         return responseEntity;
@@ -51,7 +49,6 @@ public class TimeEntryController {
     @GetMapping
     public ResponseEntity<List<TimeEntry>> list() {
         HttpStatus status = HttpStatus.OK;
-        counter.increment();
         List<TimeEntry> body = timeEntryRepository.list();
         return new ResponseEntity<>(body, status);
     }
@@ -62,7 +59,6 @@ public class TimeEntryController {
         if (body == null){
             return new ResponseEntity(body, HttpStatus.NOT_FOUND);
         }
-        counter.increment();
         HttpStatus status = HttpStatus.OK;
         ResponseEntity responseEntity = new ResponseEntity(body, status);
         return responseEntity;
@@ -72,7 +68,6 @@ public class TimeEntryController {
     public ResponseEntity delete(@PathVariable long timeEntryId) {
         timeEntryRepository.delete(timeEntryId);
         distributionSummary.record(timeEntryRepository.list().size());
-        counter.increment();
 
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
